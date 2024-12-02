@@ -9,6 +9,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'targetUrl is required' });
       }
 
+      console.log(req)
+      
       // 获取原始请求的 headers 和 method
       const { headers, method } = req;
 
@@ -26,6 +28,8 @@ export default async function handler(req, res) {
       // 获取目标 API 的响应
       const responseBody = await response.json();
 
+      console.log(responseBody)
+      
       // 设置响应头部
       res.setHeader('Content-Type', 'application/json');
 
