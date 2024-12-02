@@ -1,34 +1,42 @@
+// api/proxy.js
 export default async function handler(req, res) {
-    // 检查请求方法是否为 POST
-    if (req.method === 'POST') {
-        try {
-            // 获取请求体
-            const { targetUrl, ...body } = req.body;
+  if (req.method === 'GET' || req.method === 'POST') {
+    try {
+      // 解析请求体
+      const { targetUrl, ...restBody } = req.body;
 
-            // 检查 targetUrl 是否存在
-            if (!targetUrl) {
-                return res.status(400).json({ error: 'Missing targetUrl' });
-            }
+      if (!targetUrl) {
+        return res.status(400).json({ error: 'targetUrl is required' });
+      }
 
-            // 发送请求到目标 URL
-            const response = await fetch(targetUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
-            });
+      // 获取原始请求的 headers 和 method
+      const { headers, method } = req;
 
-            // 获取响应内容
-            const results = await response.json();
+      // 向目标 API 发起请求，并传递剩余的 body 和 headers
+      const response = await fetch(targetUrl, {
+        method: method,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json',
+          'X-Forwarded-For': req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        },
+        body: method === 'POST' ? JSON.stringify(restBody) : undefined,
+      });
 
-            // 返回响应结果
-            return res.status(200).json(results);
-        } catch (error) {
-            return res.status(500).json({ error: 'Internal Server Error', message: error.message });
-        }
-    } else {
-        // 如果不是 POST 请求，返回 Hello World
-        return res.status(200).send('Hello World');
+      // 获取目标 API 的响应
+      const responseBody = await response.json();
+
+      // 设置响应头部
+      res.setHeader('Content-Type', 'application/json');
+
+      // 返回目标 API 的响应数据
+      res.status(response.status).json(responseBody);
+    } catch (error) {
+      // 错误处理
+      res.status(500).json({ error: 'Something went wrong', details: error.message });
     }
+  } else {
+    // 对于其他请求方式，返回 "Hello World"
+    res.status(200).send('Hello World');
+  }
 }
