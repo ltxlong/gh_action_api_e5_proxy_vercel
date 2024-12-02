@@ -1,4 +1,5 @@
-// api/proxy.js
+import querystring from 'querystring';
+
 export default async function handler(req, res) {
   if (req.method === 'GET' || req.method === 'POST') {
     try {
@@ -9,37 +10,42 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'targetUrl is required' });
       }
 
-      // 获取原始请求的 method
+      // 获取请求的 HTTP 方法
       const { method } = req;
 
+      let headers;
+      let body;
+
+      // 如果是 POST 请求，处理 application/x-www-form-urlencoded 格式
       if (method === 'POST') {
-       const headers = { 'Content-Type':'application/x-www-form-urlencoded' }
-       const body = {
-        'grant_type': 'refresh_token',
-        'refresh_token': restBody.refresh_token,
-        'client_id': restBody.id,
-        'client_secret': restBody.secret,
-        'redirect_uri': 'http://localhost:53682/'
-       }
+        headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        
+        // 将请求体转换为 x-www-form-urlencoded 格式
+        body = querystring.stringify({
+          grant_type: 'refresh_token',
+          refresh_token: restBody.refresh_token,
+          client_id: restBody.id,
+          client_secret: restBody.secret,
+          redirect_uri: 'http://localhost:53682/'
+        });
       } else {
-        const headers = { 'Content-Type':'application/json' }
-        const body = undefined
+        // 对于 GET 请求，使用默认的 application/json 格式
+        headers = { 'Content-Type': 'application/json' };
+        body = undefined;
       }
 
-      // 向目标 API 发起请求，并传递剩余的 body 和 headers
+      // 向目标 API 发起请求，并传递 headers 和 body
       const response = await fetch(targetUrl, {
         method: method,
-        headers,
-        body
+        headers: headers,
+        body: body
       });
 
       // 获取目标 API 的响应
       const responseBody = await response.json();
 
-      // 设置响应头部
+      // 设置响应头部并返回结果
       res.setHeader('Content-Type', 'application/json');
-
-      // 返回目标 API 的响应数据
       res.status(response.status).json(responseBody);
     } catch (error) {
       // 错误处理
@@ -50,4 +56,3 @@ export default async function handler(req, res) {
     res.status(200).send('Hello World');
   }
 }
-
