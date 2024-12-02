@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET' || req.method === 'POST') {
     try {
       // 解析请求体
-      const { targetUrl, ...restBody } = req.body;
+      const { targetUrl, grant_type, refresh_token, client_id, client_secret, redirect_uri } = req.body;
 
       if (!targetUrl) {
         return res.status(400).json({ error: 'targetUrl is required' });
@@ -22,12 +22,14 @@ export default async function handler(req, res) {
         
         // 将请求体转换为 x-www-form-urlencoded 格式
         body = querystring.stringify({
-          grant_type: 'refresh_token',
-          refresh_token: restBody.refresh_token,
-          client_id: restBody.id,
-          client_secret: restBody.secret,
-          redirect_uri: 'http://localhost:53682/'
+          grant_type: grant_type,
+          refresh_token: refresh_token,
+          client_id: client_id,
+          client_secret: client_secret,
+          redirect_uri: redirect_uri
         });
+
+        console.log(body)
       } else {
         // 对于 GET 请求，使用默认的 application/json 格式
         headers = { 'Content-Type': 'application/json' };
