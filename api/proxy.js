@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       const response = await fetch(targetUrl, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: method === 'POST' ? JSON.stringify(restBody) : undefined,
       });
