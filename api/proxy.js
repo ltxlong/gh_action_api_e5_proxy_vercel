@@ -17,6 +17,7 @@ export default async function handler(req, res) {
 
       console.log(headers)
       console.log(method)
+      console.log(JSON.stringify(restBody))
       
       // 向目标 API 发起请求，并传递剩余的 body 和 headers
       const response = await fetch(targetUrl, {
