@@ -8,24 +8,15 @@ export default async function handler(req, res) {
       if (!targetUrl) {
         return res.status(400).json({ error: 'targetUrl is required' });
       }
-
-      console.log(targetUrl)
-      console.log(req.body)
       
-      // 获取原始请求的 headers 和 method
-      const { headers, method } = req;
-
-      console.log(headers)
-      console.log(method)
-      console.log(JSON.stringify(restBody))
+      // 获取原始请求的 method
+      const { method } = req;
       
       // 向目标 API 发起请求，并传递剩余的 body 和 headers
       const response = await fetch(targetUrl, {
         method: method,
         headers: {
-          ...headers,
           'Content-Type': 'application/json',
-          'X-Forwarded-For': req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         },
         body: method === 'POST' ? JSON.stringify(restBody) : undefined,
       });
